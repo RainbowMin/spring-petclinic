@@ -29,8 +29,61 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 version = "2024.03"
 
 project {
-    buildType(cleanFiles(MinjieBuildConfigOfSpringPetclinic))
+    //buildType(cleanFiles(MinjieBuildConfigOfSpringPetclinic))
+    buildType(BuildForMacOSX)
 }
+
+object BuildForMacOSX : BuildType({
+    name = "Build for Mac OS X"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        maven {
+            goals = "clean package"
+            mavenVersion = defaultProvidedVersion()
+            jdkHome = "%env.JDK_18%"
+        }
+    }
+
+    requirements {
+        equals("teamcity.agent.jvm.os.name", "Mac OS X")
+    }
+})
+
+val operatingSystems = listOf("Mac OS X", "Windows", "Linux")
+val jdkVersions = listOf("JDK_18", "JDK_11")
+
+project {
+    for (os in operatingSystems) {
+        for (jdk in jdkVersions) {
+            buildType(Build(os, jdk))
+        }
+    }
+}
+
+class Build(val os: String, val jdk: String) : BuildType({
+    id("Build_${os.replace(" ", "_")}_${jdk}")
+    name = "Build ($os, $jdk)"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        maven {
+            goals = "clean package"
+            mavenVersion = defaultProvidedVersion()
+            jdkHome = "%env.${jdk}%"
+        }
+    }
+
+    requirements {
+        equals("teamcity.agent.jvm.os.name", os)
+    }
+})
 
 object MinjieBuildConfigOfSpringPetclinic : BuildType({
     name = "minjie Build config of Spring Petclinic"
