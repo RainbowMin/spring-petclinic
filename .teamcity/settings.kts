@@ -81,3 +81,13 @@ fun cleanFiles(buildType: BuildType): BuildType {
     }
     return buildType
 }
+
+/*
+将其泛化，以便自己定义功能:创建所谓的高阶函数，即一种将另一个函数作为参数的函数。实际上，这正是features、feature以及TeamCity领域特定语言（DSL）中的许多其他元素的本质。
+*/
+fun wrapWithFeature(buildType: BuildType, featureBlock: BuildFeatures.() -> Unit): BuildType {
+    buildType.features {
+        featureBlock()
+    }
+    return buildType
+}
