@@ -29,8 +29,7 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 version = "2024.03"
 
 project {
-
-    buildType(MinjieBuildConfigOfSpringPetclinic)
+    buildType(cleanFiles(MinjieBuildConfigOfSpringPetclinic))
 }
 
 object MinjieBuildConfigOfSpringPetclinic : BuildType({
@@ -67,3 +66,18 @@ object MinjieBuildConfigOfSpringPetclinic : BuildType({
         contains("teamcity.agent.name", "minjie")
     }
 })
+
+/*
+这个新功能本质上接收一个BuildType，为其添加一个特性，然后返回该BuildType。
+由于Kotlin支持顶层函数（即不需要对象或类来承载函数），
+我们可以将它放在代码中的任何位置，或者创建一个专门的文件来存放它。
+ */
+fun cleanFiles(buildType: BuildType): BuildType {
+    if (buildType.features.items.find { it.type == "swabra" } == null) {
+        buildType.features {
+            swabra {
+            }
+        }
+    }
+    return buildType
+}
