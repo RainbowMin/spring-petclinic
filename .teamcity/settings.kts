@@ -64,6 +64,7 @@ project {
             buildType(Build(os, jdk))
         }
     }
+    buildType(Publish)
 }
 
 class Build(val os: String, val jdk: String) : BuildType({
@@ -146,3 +147,28 @@ fun wrapWithFeature(buildType: BuildType, featureBlock: BuildFeatures.() -> Unit
     }
     return buildType
 }
+
+object Package : BuildType({
+    name = "Package"
+
+    artifactRules = "application.zip"
+
+    steps {
+        // define the steps needed to produce the application.zip
+    }
+})
+
+object Publish: BuildType({
+    name="Publish"
+
+    steps {
+        // define the steps needed to publish the artifacts
+    }
+
+    dependencies {
+        snapshot(Package){}
+        artifacts(Package) {
+            artifactRules = "application.zip"
+        }
+    }
+})
