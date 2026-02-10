@@ -67,7 +67,7 @@ project {
     buildType(Publish)
 
     sequence {
-        build(Publish)
+        build(BuildA)
         build(BuildB) // BuildB has a snapshot dependency on BuildA
     }
 }
