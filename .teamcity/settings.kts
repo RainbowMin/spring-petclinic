@@ -59,6 +59,7 @@ val operatingSystems = listOf("Mac OS X", "Windows", "Linux")
 val jdkVersions = listOf("JDK_18", "JDK_11")
 
 project {
+    /*
     for (os in operatingSystems) {
         for (jdk in jdkVersions) {
             buildType(Build(os, jdk))
@@ -69,6 +70,20 @@ project {
     sequence {
         build(BuildA)
         build(BuildB) // BuildB has a snapshot dependency on BuildA
+    }
+    */
+
+    sequence {
+        build(Compile)
+        parallel {
+            build(Test1)
+            sequence {
+                build(Test2)
+                build(Test3)
+            }
+        }
+        build(Package)
+        build(Publish)
     }
 }
 
@@ -183,18 +198,12 @@ object Publish: BuildType({
 })
 
 //4.扩展TeamCity DSL
-class Sequence {
-    val buildTypes = arrayListOf<BuildType>()
-
-    fun build(buildType: BuildType) {
-        buildTypes.add(buildType)
-    }
-}
-
+//4.1 定义一个Sequence类
 /*
 为Project类添加了一个扩展函数，使我们能够声明sequence。通过使用前面提到的带接收者的Lambda特性，
 我们声明了用作sequence函数参数的代码块将提供Sequence类的上下文
  */
+/*
 fun Project.sequence(block: Sequence.()-> Unit){
     val sequence = Sequence().apply(block)
     var previous: BuildType? = null
@@ -208,7 +217,7 @@ fun Project.sequence(block: Sequence.()-> Unit){
     // 对每个构建类型调用buildType函数,以将其包含到当前项目中
     sequence.buildTypes.forEach(this::buildType)
 }
-
+*/
 object BuildA: BuildType({
     name="BuildA"
 
@@ -227,6 +236,110 @@ object BuildA: BuildType({
     triggers {
         vcs {
         }
+    }
+
+    requirements {
+        contains("teamcity.agent.name", "minjie")
+    }
+})
+
+object Compile: BuildType({
+    name="Compile"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
+    }
+
+    triggers {
+        vcs {
+        }
+    }
+
+    requirements {
+        contains("teamcity.agent.name", "minjie")
+    }
+})
+
+object Test1: BuildType({
+    name="Test1"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
+    }
+
+    triggers {
+        vcs {
+        }
+    }
+
+    requirements {
+        contains("teamcity.agent.name", "minjie")
+    }
+})
+
+object Test2: BuildType({
+    name="Test2"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
+    }
+
+    triggers {
+        vcs {
+        }
+    }
+
+    requirements {
+        contains("teamcity.agent.name", "minjie")
+    }
+})
+
+object Test3: BuildType({
+    name="Test3"
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    steps {
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
+    }
+
+    triggers {
+        vcs {
+        }
+    }
+
+    requirements {
+        contains("teamcity.agent.name", "minjie")
     }
 })
 
@@ -249,4 +362,98 @@ object BuildB: BuildType({
         vcs {
         }
     }
+
+    requirements {
+        contains("teamcity.agent.name", "minjie")
+    }
 })
+
+//4.2 Parallel
+interface Stage
+class Single(val buildType: BuildType) : Stage
+
+class Parallel : Stage {
+    val buildTypes = arrayListOf<BuildType>()
+
+    fun build(buildType: BuildType) {
+        buildTypes.add(buildType)
+    }
+}
+
+class Sequence {
+    val stages  = arrayListOf<Stage>()
+
+    fun build(buildType: BuildType) {
+        stages.add(Single(buildType))
+    }
+
+    fun parallel(block: Parallel.() -> Unit) {
+        val parallel = Parallel().apply(block)
+        stages.add(parallel)
+    }
+}
+
+fun Project.sequence(block: Sequence.() -> Unit) {
+    val sequence = Sequence().apply(block)
+
+    var previous: Stage? = null
+
+    for (current in sequence.stages) {
+        if (previous != null) {
+            createSnapshotDependency(current, previous)
+        }
+        previous = current
+    }
+
+    sequence.stages.forEach {
+        if (it is Single) {
+            buildType(it.buildType)
+        }
+        if (it is Parallel) {
+            it.buildTypes.forEach(this::buildType)
+        }
+    }
+}
+
+fun createSnapshotDependency(stage: Stage, dependency: Stage){
+    if (dependency is Single) {
+        stageDependsOnSingle(stage, dependency)
+    }
+    if (dependency is Parallel) {
+        stageDependsOnParallel(stage, dependency)
+    }
+}
+
+fun stageDependsOnSingle(stage: Stage, dependency: Single) {
+    if (stage is Single) {
+        singleDependsOnSingle(stage, dependency)
+    }
+    if (stage is Parallel) {
+        parallelDependsOnSingle(stage, dependency)
+    }
+}
+
+fun stageDependsOnParallel(stage: Stage, dependency: Parallel) {
+    if (stage is Single) {
+        singleDependsOnParallel(stage, dependency)
+    }
+    if (stage is Parallel) {
+        throw IllegalStateException("Parallel cannot snapshot-depend on parallel")
+    }
+}
+
+fun parallelDependsOnSingle(stage: Parallel, dependency: Single) {
+    stage.buildTypes.forEach { buildType ->
+        singleDependsOnSingle(Single(buildType), dependency)
+    }
+}
+
+fun singleDependsOnParallel(stage: Single, dependency: Parallel) {
+    dependency.buildTypes.forEach { buildType ->
+        singleDependsOnSingle(stage, Single(buildType))
+    }
+}
+
+fun singleDependsOnSingle(stage: Single, dependency: Single) {
+    stage.buildType.dependencies.snapshot(dependency.buildType) {}
+}
