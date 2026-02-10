@@ -212,23 +212,41 @@ fun Project.sequence(block: Sequence.()-> Unit){
 object BuildA: BuildType({
     name="BuildA"
 
-    steps {
-        // define the steps needed to publish the artifacts
+    vcs {
+        root(DslContext.settingsRoot)
     }
 
-    requirements {
-        contains("teamcity.agent.name", "minjie")
+    steps {
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
+    }
+
+    triggers {
+        vcs {
+        }
     }
 })
 
 object BuildB: BuildType({
     name="BuildB"
 
-    steps {
-        // define the steps needed to publish the artifacts
+    vcs {
+        root(DslContext.settingsRoot)
     }
 
-    requirements {
-        contains("teamcity.agent.name", "minjie")
+    steps {
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
+    }
+
+    triggers {
+        vcs {
+        }
     }
 })
