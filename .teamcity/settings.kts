@@ -3,6 +3,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildFeatures.swabra
 import jetbrains.buildServer.configs.kotlin.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
+import SimpleSequence.Project
 
 /*
 The settings script is an entry point for defining a TeamCity
@@ -73,6 +74,7 @@ project {
     }
     */
 
+    /*
     sequence {
         build(Compile)
         parallel {
@@ -85,6 +87,9 @@ project {
         build(Package)
         build(Publish)
     }
+    */
+
+    subProject(SimpleSequence.Project)
 }
 
 class Build(val os: String, val jdk: String) : BuildType({

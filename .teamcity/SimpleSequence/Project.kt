@@ -10,13 +10,13 @@ object Project : Project({
     id("SimpleSequence")
     name = "SimpleSequence"
 
-    buildType(BuildA)
-    buildType(BuildB)
-    buildType(BuildC)
+    buildType(Build1)
+    buildType(Build2)
+    buildType(Build3)
 })
 
-object BuildA: BuildType({
-    name="BuildA"
+object Build1: BuildType({
+    name="Build1"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -40,8 +40,8 @@ object BuildA: BuildType({
     }
 })
 
-object BuildB: BuildType({
-    name="BuildB"
+object Build2: BuildType({
+    name="Build2"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -65,8 +65,8 @@ object BuildB: BuildType({
     }
 })
 
-object BuildC: BuildType({
-    name="BuildC"
+object Build3: BuildType({
+    name="Build3"
 
     vcs {
         root(DslContext.settingsRoot)
