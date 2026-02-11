@@ -8,6 +8,9 @@ val operatingSystems = listOf("Mac OS X", "Windows", "Linux")
 val jdkVersions = listOf("JDK_18", "JDK_11")
 
 object Project : Project({
+    id("DynamicCreateBuild")
+    name = "DynamicCreateBuild"
+    
     for (os in operatingSystems) {
         for (jdk in jdkVersions) {
             buildType(Build(os, jdk))
