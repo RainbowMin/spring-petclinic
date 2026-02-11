@@ -6,8 +6,8 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 object Project : Project({
-    id("CustomBuildChain1")
-    name = "CustomBuildChain1"
+    id("CustomBuildChain_Sequence")
+    name = "CustomBuildChain_Sequence"
 
     sequence {
         build(BuildA)

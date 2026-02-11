@@ -11,6 +11,7 @@ project {
     subProject(DynamicCreateBuild.Project)
     subProject(SimpleDependency.Project)
     subProject(CustomBuildChain1.Project)
+    subProject(CustomBuildChain_Parallel.Project)
 }
 
 object MinjieBuildConfigOfSpringPetclinic : BuildType({
