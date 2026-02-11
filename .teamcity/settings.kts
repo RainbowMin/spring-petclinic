@@ -91,6 +91,7 @@ project {
 
     subProject(SimpleSequence.Project)
     subProject(DynamicCreateBuild.Project)
+    subProject(SimpleDependency.Project)
 }
 
 class Build(val os: String, val jdk: String) : BuildType({
