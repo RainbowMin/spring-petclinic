@@ -90,6 +90,7 @@ project {
     */
 
     subProject(SimpleSequence.Project)
+    subProject(DynamicCreateBuild.Project)
 }
 
 class Build(val os: String, val jdk: String) : BuildType({
